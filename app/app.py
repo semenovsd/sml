@@ -36,13 +36,6 @@ async def on_shutdown(self):
     # Send message to admin
     await bot.send_message(TG_ADMINS_ID[0], "Я выключен!")
 
-    # Close bot
-    await bot.close()
-
-    # Close DB connection (if used)
-    await dp.storage.close()
-    await dp.storage.wait_closed()
-
 
 if __name__ == '__main__':
     # forwarding dp from handlers
