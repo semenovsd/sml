@@ -1,0 +1,27 @@
+version: '3.7'
+
+services:
+
+  smlbot:
+    container_name: smlbot
+    build:
+      context: ./$APP_BASE_DIR
+      args:
+        APP_BASE_DIR: $APP_BASE_DIR
+    command: python app.py
+    # загружаем переменные окружения в контейнер
+    env_file:
+      - .env
+    ports:
+      - $WEBAPP_PORT:$WEBHOOK_PORT
+    networks:
+      - backend
+    restart: always
+    # устанавливаем зависимость от db, что гарантирует запуск бд до запуска приложения
+    depends_on:
+      - db
+
+# указываются используемые сети
+networks:
+  backend:
+    # указывается драйвер сети
