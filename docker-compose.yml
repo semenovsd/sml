@@ -1,6 +1,37 @@
 version: '3.7'
 
 services:
+  db:
+    container_name: db
+    image: postgres:12.3
+    environment:
+      POSTGRES_DB: $POSTGRES_DB
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    networks:
+      - backend
+    restart: always
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:4.21
+    environment:
+      PGADMIN_DEFAULT_EMAIL: $PGADMIN_DEFAULT_EMAIL
+      PGADMIN_DEFAULT_PASSWORD: $PGADMIN_DEFAULT_PASSWORD
+      PGADMIN_ENABLE_TLS: "True"
+    volumes:
+#      - ./pgadmin/tmp/servers.json:/pgadmin4/servers.json
+#      - ./pgadmin/private/var/lib/pgadmin:/var/lib/pgadmin
+      - ./$APP_BASE_DIR/$WEBHOOK_SSL_CERT:/certs/server.cert:ro
+      - ./$APP_BASE_DIR/$WEBHOOK_SSL_PRIV:/certs/server.key:ro
+    ports:
+      - 443:443
+    networks:
+      - backend
+    restart: always
+    depends_on:
+      - db
 
   smlbot:
     container_name: smlbot
@@ -9,7 +40,6 @@ services:
       args:
         APP_BASE_DIR: $APP_BASE_DIR
     command: python app.py
-    # загружаем переменные окружения в контейнер
     env_file:
       - .env
     ports:
@@ -17,11 +47,8 @@ services:
     networks:
       - backend
     restart: always
-    # устанавливаем зависимость от db, что гарантирует запуск бд до запуска приложения
     depends_on:
       - db
 
-# указываются используемые сети
 networks:
   backend:
-    # указывается драйвер сети

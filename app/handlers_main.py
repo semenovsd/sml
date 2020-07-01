@@ -29,6 +29,17 @@ async def start_cmd_handler(message: types.Message, user: User):
     await bot.send_message(message.from_user.id, text=reply, reply_markup=keyboard_markup)
 
 
+@dp.callback_query_handler(state='*', text='main')
+async def cancel_handler(call: types.CallbackQuery, user: User):
+
+    keyboard_markup = InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text='Создать', callback_data='main')]]
+    )
+    await bot.send_message(call.from_user.id,
+                           text='Отменено. Вернитесь в галвное меню.',
+                           reply_markup=keyboard_markup)
+
+
 # Cancel button for all cases
 @dp.message_handler(state='*', commands='cancel')
 @dp.callback_query_handler(state='*', text='cancel')

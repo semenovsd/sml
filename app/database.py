@@ -25,7 +25,7 @@ class User(db.Model):
     id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
     user_id = Column(BigInteger, unique=True)
 
-    async def get_or_create(self, user_id: int):
+    async def get(self, user_id: int):
         user = await User.query.where(User.user_id == user_id).gino.first()
         # If user exist return user
         if user:
