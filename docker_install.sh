@@ -18,7 +18,7 @@ sudo echo "{
 }" > /etc/docker/daemon.json
 sudo systemctl restart docker
 
-# add group docker for run docker commands without sudo
+# add group docker
 sudo groupadd docker
 
 # Add current user to the docker group.
@@ -26,3 +26,6 @@ sudo usermod -aG docker "${USER}"
 
 # Activate the changes to groups
 newgrp docker
+
+# TODO add pgadmin user, ssl sertificate, git init, git clone, ssh key for git and TG
+# sudo chown -R 5050:5050 <host_directory>

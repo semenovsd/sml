@@ -1,11 +1,8 @@
-import json
-
 from gino import Gino
 from gino.schema import GinoSchemaVisitor
 from sqlalchemy import (BigInteger, Column, Integer,
                         Sequence, String, sql, ForeignKey)
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.dialects.postgresql import JSON
 
 from config import PG_HOST, POSTGRES_DB, POSTGRES_PASSWORD, POSTGRES_USER
 
@@ -27,39 +24,46 @@ class User(db.Model):
 
     async def get(self, user_id: int):
         user = await User.query.where(User.user_id == user_id).gino.first()
-        # If user exist return user
         if user:
             return user
         self.user_id = user_id
         await self.create()
         return self
 
+    async def get_albums(self):
+        return await Album.query.where(Album.user_id == self.user_id).gino.all()
 
-class MusicList(db.Model):
-    __tablename__ = 'musiclists'
+
+class Album(db.Model):
+    __tablename__ = 'albums'
     query: sql.Select
 
-    id = Column(Integer, Sequence('ml_id_seq'), primary_key=True)
+    # TODO убрать последовательность так как будут удаляться
+    id = Column(Integer, Sequence('album_id_seq'), primary_key=True)
     user_id = Column(BigInteger, ForeignKey('users.user_id'))
-    list_name = Column(String(50), default=None)
-    music_list = Column(JSON(1024))
+    name = Column(String(50), default=None)
+    tracks = Column(postgresql.ARRAY(String(80)), default=[])
 
-    async def create(self, user_id, music_list):
+    async def new(self, name, user_id):
         self.user_id = int(user_id)
-        self.list_name = str(music_list.list_name)
-        self.music_list = json.loads(music_list.list)
+        self.name = name
+        self.tracks = []
         await self.create()
+        return self
 
-    async def get(self, *args):
-        return {data: json.loads(self.music_list).get(data) for data in args} if self.music_list else None
+    async def get(self, album_id):
+        album = await Album.query.where(Album.id == int(album_id)).gino.first()
+        # self.id = album.id
+        # self.user_id = album.user_id
+        # self.name = album.name
+        # self.tracks = album.tracks
+        return album
 
-    async def set(self, data, *args):
-        if self.music_list:
-            saving_info = json.loads(self.music_list)
-            saving_info.update({arg: data[arg] for arg in data if arg in args})
-            await self.update(Musiclist.music_list=json.dumps(saving_info)).apply()
-        else:
-            await self.update(MusicList.music_list=json.dumps({arg: data[arg] for arg in data if arg in args})).apply()
+    async def get_tracks(self):
+        return self.tracks
+
+    async def set_tracks(self, tracks):
+        await self.update(tracks=tracks).apply()
 
 
 async def create_db():

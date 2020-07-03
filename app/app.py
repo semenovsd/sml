@@ -11,7 +11,7 @@ from load_all import bot
 WEBHOOK_URL = f'{WEBHOOK_HOST}:{WEBHOOK_PORT}{WEBHOOK_PATH}'
 
 
-async def on_startup(self):
+async def on_startup(dp):
     await create_db()
 
     # Check webhook
@@ -30,11 +30,18 @@ async def on_startup(self):
     await bot.send_message(TG_ADMINS_ID[0], "Я запущен!")
 
 
-async def on_shutdown(self):
+async def on_shutdown(dp):
     # insert code here to run it before shutdown
 
     # Send message to admin
     await bot.send_message(TG_ADMINS_ID[0], "Я выключен!")
+
+    # Close bot
+    await bot.close()
+
+    # Close DB connection (if used)
+    await dp.storage.close()
+    await dp.storage.wait_closed()
 
 
 if __name__ == '__main__':

@@ -1,12 +1,8 @@
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 
-class EditWithdraw(StatesGroup):
-    EditFullName = State()
-    EditPhoneNumber = State()
-    EditEmail = State()
-    EditPassportNumber = State()
-    EditCheck = State()
+class EditAlbum(StatesGroup):
+    EditName = State()
 
 
 class Mailing(StatesGroup):
