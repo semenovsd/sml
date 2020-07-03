@@ -119,9 +119,9 @@ async def share_album(call: types.CallbackQuery, user: User):
     albums = await user.get_albums()
     if albums:
         bot_username = (await bot.me).username
-        for album in user.albums:
+        for album in albums:
             keyboard_markup.add(
-                InlineKeyboardButton(text=album.album_name, url=f'https://t.me/{bot_username}?start={album.id}')
+                InlineKeyboardButton(text=album.name, url=f'https://t.me/{bot_username}?start={album.id}')
             )
         reply = 'Поделись ссылкой на один из своих альбомов'
     else:
@@ -194,7 +194,6 @@ async def add_track(call: types.CallbackQuery, user: User):
     keyboard_markup = InlineKeyboardMarkup(
         inline_keyboard=[[InlineKeyboardButton(text='Создать новый альбом', callback_data=f'new_album')]]
     )
-
     track_file_id = call.message.audio.file_id
     user_albums = await user.get_albums()
     if user_albums:
@@ -205,9 +204,11 @@ async def add_track(call: types.CallbackQuery, user: User):
             album = await Album().get(album_id=album_id)
             if track_file_id in album.tracks:
                 album.tracks.remove(track_file_id)
+                await album.set_tracks(album.tracks)
             else:
                 album.tracks.append(track_file_id)
-
+                await album.set_tracks(album.tracks)
+        user_albums = await user.get_albums()
         for album in user_albums:
             if track_file_id in album.tracks:
                 keyboard_markup.add(
@@ -217,9 +218,9 @@ async def add_track(call: types.CallbackQuery, user: User):
                 keyboard_markup.add(
                     InlineKeyboardButton(text=f'-- {album.name}', callback_data=f'add_track:{album.id}')
                 )
-
     await bot.edit_message_reply_markup(
-        inline_message_id=call.message.message_id,
+        chat_id=call.from_user.id,
+        message_id=call.message.message_id,
         reply_markup=keyboard_markup
     )
 
